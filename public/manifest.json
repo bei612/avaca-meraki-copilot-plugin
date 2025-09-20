@@ -33,7 +33,7 @@
   "type": "standalone",
   "ui": {
     "url": "http://plugin-demo-2-avaca-dev.jototech.cn/iframe",
-    "height": 580,
+    "height": 520,
     "width": 920
   },
   "version": "1"

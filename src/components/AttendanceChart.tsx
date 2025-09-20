@@ -25,8 +25,8 @@ export const AttendanceChart: React.FC<AttendanceChartProps> = ({
     backgroundColor: 'transparent',
     grid: {
       bottom: '15%',
-      left: '10%',
-      right: '10%',
+      left: '5%',
+      right: '5%',
       top: '20%'
     },
     series: [{
@@ -154,9 +154,8 @@ export const AttendanceChart: React.FC<AttendanceChartProps> = ({
       flexDirection: 'column',
       height: '100vh',
       maxHeight: '480px',
-      maxWidth: '100%',
       overflow: 'hidden',
-      padding: '16px',
+      padding: '12px 8px',
       width: '100%'
     }}>
       {/* 标题 */}
@@ -210,17 +209,6 @@ export const AttendanceChart: React.FC<AttendanceChartProps> = ({
             width: '100%' 
           }} 
         />
-      </div>
-
-      {/* 提示信息 */}
-      <div style={{
-        color: '#94a3b8',
-        flexShrink: 0,
-        fontSize: '11px',
-        marginTop: '8px',
-        textAlign: 'center'
-      }}>
-        点击图表查看详细数据
       </div>
     </div>
   );

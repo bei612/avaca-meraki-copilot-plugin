@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { lobeChat } from '@lobehub/chat-plugin-sdk/client';
+import { callWithRetry } from '../utils/retry';
 import { AttendanceChart } from './AttendanceChart';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorDisplay } from './ErrorDisplay';
@@ -145,7 +146,14 @@ export const AttendancePlugin: React.FC<{ pluginData: LobeInitData }> = ({ plugi
   const checkHistoryData = async (): Promise<AttendanceData | null> => {
     try {
       console.log('[tool-splunk-campus] 🔍 使用标准信号检查历史数据');
-      const historyData = await lobeChat.getPluginMessage();
+      const historyData = await callWithRetry(() => lobeChat.getPluginMessage(), {
+        baseDelayMs: 500,
+        onRetry: (attempt, error) => {
+          console.log(`[tool-splunk-campus] 历史数据获取重试第 ${attempt} 次:`, error);
+        },
+        retries: 5,
+        timeoutMs: 2000
+      });
       
       // 🔍 详细打印历史数据结构用于调试
       console.log('[tool-splunk-campus] 📊 历史数据完整结构:', JSON.stringify(historyData, null, 2));
@@ -215,7 +223,14 @@ export const AttendancePlugin: React.FC<{ pluginData: LobeInitData }> = ({ plugi
       };
       
       // 使用标准信号保存完整数据供历史查看，并触发AI分析
-      await lobeChat.setPluginMessage(dataWithMetadata, true);
+             await callWithRetry(() => Promise.resolve(lobeChat.setPluginMessage(dataWithMetadata, true)), {
+               baseDelayMs: 500,
+               onRetry: (attempt, error) => {
+                 console.log(`[tool-splunk-campus] 数据保存重试第 ${attempt} 次:`, error);
+               },
+               retries: 5,
+               timeoutMs: 2500
+             });
       
       console.log('[tool-splunk-campus] ✅ 数据保存成功，AI将生成分析');
     } catch (error) {
@@ -269,7 +284,7 @@ export const AttendancePlugin: React.FC<{ pluginData: LobeInitData }> = ({ plugi
     };
 
     loadData();
-  }, [pluginData]);
+  }, [pluginData.payload.arguments, pluginData.userId]); // 只在参数或用户ID变化时重新加载
 
   // 渲染状态
   if (loading) {
