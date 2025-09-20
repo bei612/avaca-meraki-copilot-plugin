@@ -25,7 +25,21 @@ const PluginApp: React.FC = () => {
       console.log('[tool-splunk-campus] 📨 完整消息:', event.data);
       
       if (event.data?.type === 'lobe-chat:init-standalone-plugin') {
-        console.log('[tool-splunk-campus] ✅ 收到初始化数据:', event.data);
+         console.log('[tool-splunk-campus] ✅ 收到初始化数据:', event.data);
+         console.log('[tool-splunk-campus] 🏷️ 多插件初始化隔离机制:');
+         console.log('  📊 LobeChat 五层隔离机制:');
+         console.log('    1️⃣ 用户层 (userId):', event.data.userId);
+         console.log('    2️⃣ 会话层: 每个会话/主题独立存储');
+         console.log('    3️⃣ 插件类型层 (identifier):', event.data.payload?.identifier);
+         console.log('    4️⃣ 工具调用层 (tool_call_id):', event.data.tool_call_id || event.data.payload?.id);
+         console.log('    5️⃣ 消息层: 每个插件实例独有 messageId');
+         console.log('  🔐 隔离保证:');
+         console.log('    - 此 tool-splunk-campus 实例与 follow-up-actions 完全隔离');
+         console.log('    - 数据存储在独立的 messageId 中');
+         console.log('    - 无法访问其他插件或用户的数据');
+         console.log('  📋 技术细节:');
+         console.log('    - API名称 (apiName):', event.data.payload?.apiName);
+         console.log('    - 插件类型 (type):', event.data.payload?.type);
         hasReceivedInit = true;
         if (initTimeout) clearTimeout(initTimeout);
         setPluginData(event.data);

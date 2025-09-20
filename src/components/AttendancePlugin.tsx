@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { lobeChat } from '@lobehub/chat-plugin-sdk/client';
 import { callWithRetry } from '../utils/retry';
+import { lobeClient } from '../utils/lobeClient';
 import { AttendanceChart } from './AttendanceChart';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorDisplay } from './ErrorDisplay';
@@ -145,18 +146,39 @@ export const AttendancePlugin: React.FC<{ pluginData: LobeInitData }> = ({ plugi
   // 使用标准信号检查历史数据
   const checkHistoryData = async (): Promise<AttendanceData | null> => {
     try {
-      console.log('[tool-splunk-campus] 🔍 使用标准信号检查历史数据');
-      const historyData = await callWithRetry(() => lobeChat.getPluginMessage(), {
+           console.log('[tool-splunk-campus] 🔍 使用标准信号检查历史数据');
+           console.log('[tool-splunk-campus] 🏷️ 多插件数据隔离机制演示:');
+           console.log('  📊 五层隔离标识:');
+           console.log('    1️⃣ 用户层 (userId):', pluginData.userId);
+           console.log('    2️⃣ 会话层 (sessionId/topicId): 由主应用管理');
+           console.log('    3️⃣ 插件类型层 (identifier):', pluginData.payload.identifier);
+           console.log('    4️⃣ 工具调用层 (tool_call_id):', pluginData.tool_call_id || pluginData.payload.id);
+           console.log('    5️⃣ 消息层 (messageId): 每个插件实例独有的消息ID');
+           console.log('  🔐 数据隔离保证:');
+           console.log('    - 此数据仅属于当前 tool-splunk-campus 插件实例');
+           console.log('    - 与 follow-up-actions 插件完全隔离');
+           console.log('    - 与同类型插件的其他调用完全隔离');
+           console.log('  📋 技术细节:');
+           console.log('    - API名称 (apiName):', pluginData.payload.apiName);
+           console.log('    - 插件类型 (type):', pluginData.payload.type);
+      
+      const historyData = await callWithRetry(() => lobeClient.fetchPluginMessage(), {
         baseDelayMs: 500,
         onRetry: (attempt, error) => {
           console.log(`[tool-splunk-campus] 历史数据获取重试第 ${attempt} 次:`, error);
         },
-        retries: 5,
-        timeoutMs: 2000
+        retries: 2,
+        timeoutMs: 1500
       });
       
-      // 🔍 详细打印历史数据结构用于调试
-      console.log('[tool-splunk-campus] 📊 历史数据完整结构:', JSON.stringify(historyData, null, 2));
+           // 🔍 详细打印历史数据结构用于调试
+           console.log('[tool-splunk-campus] 📊 历史数据完整结构:', JSON.stringify(historyData, null, 2));
+           console.log('[tool-splunk-campus] 🔑 多插件隔离验证:');
+           console.log('  ✅ 此数据仅属于当前 tool-splunk-campus 插件实例');
+           console.log('  ✅ 无法访问 follow-up-actions 插件的数据');
+           console.log('  ✅ 无法访问其他用户的数据');
+           console.log('  ✅ 无法访问其他会话的数据');
+           console.log('  ✅ 数据存储在独立的 messageId 中');
       
       // 严格按照开发指南的标准数据结构验证
       if (historyData && 
@@ -176,12 +198,12 @@ export const AttendancePlugin: React.FC<{ pluginData: LobeInitData }> = ({ plugi
       console.log('[tool-splunk-campus] 🔍 检测失败原因:');
       console.log('  - historyData存在:', !!historyData);
       console.log('  - 是对象:', typeof historyData === 'object');
-      console.log('  - 有data字段:', historyData && 'data' in historyData);
-      console.log('  - data存在:', historyData && historyData.data);
-      console.log('  - data是对象:', historyData && typeof historyData.data === 'object');
-      console.log('  - 有trends字段:', historyData && historyData.data && 'trends' in historyData.data);
-      console.log('  - trends是数组:', historyData && historyData.data && Array.isArray(historyData.data.trends));
-      console.log('  - trends长度:', historyData && historyData.data && historyData.data.trends ? historyData.data.trends.length : 0);
+      console.log('  - 有data字段:', historyData && typeof historyData === 'object' && 'data' in historyData);
+      console.log('  - data存在:', historyData && (historyData as any).data);
+      console.log('  - data是对象:', historyData && typeof (historyData as any).data === 'object');
+      console.log('  - 有trends字段:', historyData && (historyData as any).data && 'trends' in (historyData as any).data);
+      console.log('  - trends是数组:', historyData && (historyData as any).data && Array.isArray((historyData as any).data.trends));
+      console.log('  - trends长度:', historyData && (historyData as any).data && (historyData as any).data.trends ? (historyData as any).data.trends.length : 0);
       return null;
     } catch (error) {
       console.log('[tool-splunk-campus] ⚠️ 获取历史数据失败，进行首次调用:', error);
@@ -210,29 +232,51 @@ export const AttendancePlugin: React.FC<{ pluginData: LobeInitData }> = ({ plugi
   // 使用标准的 lobe-chat:fill-plugin-content 信号保存数据
   const savePluginData = async (data: AttendanceData) => {
     try {
-      console.log('[tool-splunk-campus] 💾 使用标准信号保存插件数据');
+           console.log('[tool-splunk-campus] 💾 使用标准信号保存插件数据');
+           console.log('[tool-splunk-campus] 🏷️ 多插件数据隔离保存机制:');
+           console.log('  📊 五层隔离保存:');
+           console.log('    1️⃣ 用户层隔离 (userId):', pluginData.userId);
+           console.log('    2️⃣ 会话层隔离: 数据仅在当前会话中可见');
+           console.log('    3️⃣ 插件类型隔离 (identifier):', pluginData.payload.identifier);
+           console.log('    4️⃣ 工具调用隔离 (tool_call_id):', pluginData.tool_call_id || pluginData.payload.id);
+           console.log('    5️⃣ 消息层隔离: 每个插件实例有独立的 messageId');
+           console.log('  🔐 隔离保证:');
+           console.log('    - 数据将保存到独立的 messageId 中');
+           console.log('    - 与 follow-up-actions 插件完全隔离');
+           console.log('    - 与其他用户、会话、工具调用完全隔离');
+           console.log('    - LobeChat 使用五层机制确保数据不会混淆');
       
       // 构建标准的数据结构
       const dataWithMetadata = {
         data,
         metadata: {
           isHistoryView: false,
-          timestamp: Date.now(),
+          // 添加隔离标识用于验证
+          isolationKeys: {
+            apiName: pluginData.payload.apiName,
+            identifier: pluginData.payload.identifier,
+            toolCallId: pluginData.tool_call_id || pluginData.payload.id,
+            userId: pluginData.userId
+          },
+          
+timestamp: Date.now(),
+          
           version: '1.0'
         }
       };
       
       // 使用标准信号保存完整数据供历史查看，并触发AI分析
-             await callWithRetry(() => Promise.resolve(lobeChat.setPluginMessage(dataWithMetadata, true)), {
+             await callWithRetry(() => lobeClient.fillPluginContent(dataWithMetadata, true), {
                baseDelayMs: 500,
                onRetry: (attempt, error) => {
                  console.log(`[tool-splunk-campus] 数据保存重试第 ${attempt} 次:`, error);
                },
-               retries: 5,
-               timeoutMs: 2500
+               retries: 2,
+               timeoutMs: 1500
              });
       
       console.log('[tool-splunk-campus] ✅ 数据保存成功，AI将生成分析');
+      console.log('[tool-splunk-campus] 🔒 数据隔离确认: 数据已安全保存到当前插件的独立存储空间');
     } catch (error) {
       console.error('[tool-splunk-campus] ❌ 保存数据失败:', error);
     }

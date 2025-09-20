@@ -39,9 +39,29 @@ createAssistantMessage: async (content: string) =>
 
 
 
-// 获取插件消息内容
-fetchPluginMessage: async () =>
-    postMessageWithRetry('lobe-chat:fetch-plugin-message'),
+  // 获取插件消息内容
+  fetchPluginMessage: async () => {
+    // 🔧 修复：使用标准 SDK 协议，不发送 identifier
+    await postMessageWithRetry('lobe-chat:fetch-plugin-message', {});
+    
+    // 等待响应
+    return new Promise((resolve) => {
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data.type === 'lobe-chat:render-plugin') {
+          window.removeEventListener('message', handleMessage);
+          resolve(event.data.props?.content);
+        }
+      };
+      
+      window.addEventListener('message', handleMessage);
+      
+      // 超时处理
+      setTimeout(() => {
+        window.removeEventListener('message', handleMessage);
+        resolve(null);
+      }, 3000);
+    });
+  },
 
   
   
@@ -69,8 +89,8 @@ fetchPluginState: async (key: string) =>
 
 
 // 填充插件内容
-fillPluginContent: async (content: AnyObject, triggerAI = false) =>
-    postMessageWithRetry('lobe-chat:fill-plugin-content', { content, triggerAI }),
+fillPluginContent: async (content: AnyObject, triggerAiMessage = false) =>
+    postMessageWithRetry('lobe-chat:fill-plugin-content', { content, triggerAiMessage }),
 
   
   

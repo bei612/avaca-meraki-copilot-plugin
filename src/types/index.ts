@@ -13,6 +13,7 @@ export interface LobeInitData {
   };
   settings?: Record<string, any>;   // 插件设置
   state?: Record<string, any>;      // 插件状态
+  tool_call_id?: string;           // 工具调用ID，用于数据隔离
   type: string;                    // 'lobe-chat:init-standalone-plugin'
   userId?: string;                  // 用户ID，用于权限控制
 }
