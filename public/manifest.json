@@ -1,0 +1,40 @@
+{
+  "$schema": "../node_modules/@lobehub/chat-plugin-sdk/schema.json",
+  "api": [
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/school-attendance/data",
+      "name": "getSchoolAttendance",
+      "description": "Return the attendance data of the middle school at Shanghai Campus with interactive charts and analysis.",
+      "parameters": {
+        "properties": {
+          "campus": {
+            "type": "string",
+            "description": "Campus name"
+          },
+          "date": {
+            "type": "string",
+            "description": "Date in YYYY-MM-DD format"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    }
+  ],
+  "author": "JOTO",
+  "createdAt": "2025-08-14",
+  "identifier": "tool-splunk-campus",
+  "meta": {
+    "avatar": "http://plugin-demo-2-avaca-dev.jototech.cn/logo.jpg",
+    "tags": ["splunk", "school", "attendance"],
+    "title": "School Attendance Data",
+    "description": "When user asks about 'show me middle school attendance at Shanghai Campus', this plugin will return comprehensive attendance data with interactive charts and detailed analysis."
+  },
+  "type": "standalone",
+  "ui": {
+    "url": "http://plugin-demo-2-avaca-dev.jototech.cn/iframe",
+    "height": 480,
+    "width": 920
+  },
+  "version": "1"
+}

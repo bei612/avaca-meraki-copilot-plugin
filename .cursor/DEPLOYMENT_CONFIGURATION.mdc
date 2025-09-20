@@ -1,0 +1,795 @@
+# 🚀 Avaca 插件部署配置指南 v4.0
+
+> 企业级架构的生产环境部署指南，已完成专业化重构
+
+## 📋 部署概览
+
+### 架构优势
+
+- ✅ **企业级架构**：专业工具类封装，高度模块化设计
+- ✅ **健壮性保障**：多层错误处理，网络异常自动恢复
+- ✅ **环境变量安全**：敏感信息只在服务端处理，已验证隔离
+- ✅ **业务代码隔离**：业务逻辑完全独立，框架代码纯净
+- ✅ **自动发现机制**：无需手动配置路由，自动注册
+- ✅ **权限控制**：API级别的细粒度权限管理
+- ✅ **性能优化**：智能重试、超时控制、限流保护
+- ✅ **生产就绪**：企业级质量，开箱即用
+
+### 部署要求
+
+- Node.js 18+
+- 支持环境变量的部署平台
+- HTTPS 支持（生产环境推荐）
+- 内存：最低 512MB，推荐 1GB+
+- 存储：最低 1GB，推荐 5GB+
+
+## 🔧 环境变量配置
+
+### 必需的环境变量
+
+```bash
+# === 基础配置 ===
+NODE_ENV=production
+NEXT_PUBLIC_PLUGIN_ID=your-plugin-id
+
+# === 业务API配置（服务端专用） ===
+# Meraki API配置
+MERAKI_API_KEY=your_meraki_api_key
+MERAKI_ORGANIZATION_ID=your_organization_id
+MERAKI_BASE_URL=https://api.meraki.cn/api/v1
+
+# OA系统API配置（示例）
+OA_API_KEY=your_oa_api_key
+OA_API_URL=https://oa.yourcompany.com/api
+
+# 其他业务系统配置
+# YOUR_SYSTEM_API_KEY=your_api_key
+# YOUR_SYSTEM_API_URL=https://api.yoursystem.com
+```
+
+### 权限控制配置
+
+```bash
+# === 全局权限配置 ===
+# 全局用户白名单（兜底权限）
+NEXT_PUBLIC_PLUGIN_WHITELIST=admin,manager,user1,user2
+
+# === API级别权限配置（推荐） ===
+# Meraki API权限
+NEXT_PUBLIC_API_PERMISSION_MERAKI_ORGANIZATION_NETWORKS=admin,network_admin
+NEXT_PUBLIC_API_PERMISSION_MERAKI_DEVICES=admin,device_manager
+NEXT_PUBLIC_API_PERMISSION_MERAKI_ORGANIZATIONS=admin
+NEXT_PUBLIC_API_PERMISSION_MERAKI_DEVICE_UPLINKS=admin,network_admin
+
+# OA系统权限（示例）
+NEXT_PUBLIC_API_PERMISSION_OA_USERS=admin,hr_manager
+NEXT_PUBLIC_API_PERMISSION_OA_DEPARTMENTS=admin,hr_manager,manager
+NEXT_PUBLIC_API_PERMISSION_OA_APPROVALS=  # 空值表示允许所有用户
+
+# 特殊权限值
+NEXT_PUBLIC_API_PERMISSION_SENSITIVE_API=DENY  # 拒绝所有用户
+NEXT_PUBLIC_API_PERMISSION_PUBLIC_API=         # 允许所有用户
+```
+
+### 可选的环境变量
+
+```bash
+# === 性能配置 ===
+NEXT_PUBLIC_API_TIMEOUT=30000
+NEXT_PUBLIC_MAX_RETRIES=3
+NEXT_PUBLIC_RETRY_DELAY_BASE=1000
+NEXT_PUBLIC_RETRY_DELAY_MAX=5000
+
+# === 健壮性配置 ===
+NEXT_PUBLIC_ENABLE_RATE_LIMITING=true
+NEXT_PUBLIC_RATE_LIMIT_WINDOW=30000
+NEXT_PUBLIC_RATE_LIMIT_MAX_REQUESTS=5
+
+# === 调试配置 ===
+NEXT_PUBLIC_DEBUG_MODE=false
+NEXT_PUBLIC_ENABLE_LOGGING=false
+NEXT_PUBLIC_LOG_LEVEL=error
+
+# === 自定义配置 ===
+NEXT_PUBLIC_PLUGIN_TITLE=你的插件名称
+NEXT_PUBLIC_PLUGIN_DESCRIPTION=插件描述
+```
+
+## 🌐 部署平台配置
+
+### 1. Vercel 部署
+
+#### 配置文件 (`vercel.json`)
+
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "pages/api/**/*.js": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### 部署步骤
+
+```bash
+# 1. 安装 Vercel CLI
+npm i -g vercel
+
+# 2. 登录 Vercel
+vercel login
+
+# 3. 部署项目
+vercel
+
+# 4. 配置环境变量
+vercel env add MERAKI_API_KEY
+vercel env add MERAKI_ORGANIZATION_ID
+vercel env add NEXT_PUBLIC_PLUGIN_WHITELIST
+
+# 5. 重新部署
+vercel --prod
+```
+
+### 2. Netlify 部署
+
+#### 配置文件 (`netlify.toml`)
+
+```toml
+[build]
+  command = "bun run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_ENV = "production"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+
+[[functions]]
+  directory = "pages/api"
+  node_bundler = "esbuild"
+```
+
+#### 部署步骤
+
+```bash
+# 1. 安装 Netlify CLI
+npm install -g netlify-cli
+
+# 2. 登录 Netlify
+netlify login
+
+# 3. 初始化项目
+netlify init
+
+# 4. 部署项目
+netlify deploy --prod
+
+# 5. 配置环境变量
+netlify env:set MERAKI_API_KEY your_api_key
+netlify env:set MERAKI_ORGANIZATION_ID your_org_id
+```
+
+### 3. Docker 部署
+
+#### Dockerfile
+
+```dockerfile
+# 使用官方 Node.js 镜像
+FROM node:18-alpine AS base
+
+# 安装 Bun
+RUN npm install -g bun
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制依赖文件
+COPY package.json bun.lockb ./
+
+# 安装依赖
+RUN bun install --frozen-lockfile
+
+# 复制源代码
+COPY . .
+
+# 构建应用
+RUN bun run build
+
+# 暴露端口
+EXPOSE 3000
+
+# 启动应用
+CMD ["bun", "start"]
+```
+
+#### Docker Compose
+
+```yaml
+version: '3.8'
+
+services:
+  Avaca-plugin:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_PLUGIN_ID=your-plugin-id
+      - MERAKI_API_KEY=${MERAKI_API_KEY}
+      - MERAKI_ORGANIZATION_ID=${MERAKI_ORGANIZATION_ID}
+      - NEXT_PUBLIC_PLUGIN_WHITELIST=${PLUGIN_WHITELIST}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/manifest.json"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+```
+
+#### 部署步骤
+
+```bash
+# 1. 创建环境变量文件
+cat > .env.production << EOF
+MERAKI_API_KEY=your_api_key
+MERAKI_ORGANIZATION_ID=your_org_id
+PLUGIN_WHITELIST=admin,user1,user2
+EOF
+
+# 2. 构建和启动
+docker-compose up -d
+
+# 3. 查看日志
+docker-compose logs -f
+
+# 4. 健康检查
+curl http://localhost:3000/manifest.json
+```
+
+### 4. Kubernetes 部署
+
+#### 部署配置 (`k8s-deployment.yaml`)
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: Avaca-plugin
+  labels:
+    app: Avaca-plugin
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: Avaca-plugin
+  template:
+    metadata:
+      labels:
+        app: Avaca-plugin
+    spec:
+      containers:
+      - name: Avaca-plugin
+        image: your-registry/Avaca-plugin:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NEXT_PUBLIC_PLUGIN_ID
+          value: "your-plugin-id"
+        - name: MERAKI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: meraki-api-key
+        - name: MERAKI_ORGANIZATION_ID
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: meraki-org-id
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /manifest.json
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /manifest.json
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: Avaca-plugin-service
+spec:
+  selector:
+    app: Avaca-plugin
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: api-secrets
+type: Opaque
+data:
+  meraki-api-key: <base64-encoded-api-key>
+  meraki-org-id: <base64-encoded-org-id>
+```
+
+## 🔒 安全配置
+
+### 1. HTTPS 配置
+
+```bash
+# 生产环境必须使用 HTTPS
+NEXT_PUBLIC_FORCE_HTTPS=true
+
+# 配置安全头
+NEXT_PUBLIC_SECURITY_HEADERS=true
+```
+
+### 2. CORS 配置
+
+在 `next.config.mjs` 中：
+
+```javascript
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
+          { key: 'Access-Control-Allow-Origin', value: process.env.ALLOWED_ORIGINS || '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,OPTIONS,PATCH,DELETE,POST,PUT' },
+          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization' },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;
+```
+
+### 3. 环境变量安全
+
+```bash
+# 敏感信息使用密钥管理服务
+# AWS Secrets Manager
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_REGION=us-east-1
+
+# Azure Key Vault
+AZURE_CLIENT_ID=your_client_id
+AZURE_CLIENT_SECRET=your_client_secret
+AZURE_TENANT_ID=your_tenant_id
+
+# Google Secret Manager
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
+```
+
+## 📊 监控和日志
+
+### 1. 应用监控
+
+```bash
+# 健康检查端点
+curl https://your-domain.com/manifest.json
+
+# API状态检查
+curl -X POST https://your-domain.com/api/meraki/organization-networks \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### 2. 日志配置
+
+```javascript
+// 生产环境日志配置
+const logLevel = process.env.NODE_ENV === 'production' ? 'error' : 'debug';
+
+// 结构化日志
+console.log(JSON.stringify({
+  level: 'info',
+  message: 'API调用成功',
+  timestamp: new Date().toISOString(),
+  userId: userId,
+  apiName: apiName,
+  duration: endTime - startTime
+}));
+```
+
+### 3. 性能监控
+
+```javascript
+// 性能指标收集
+const performanceMetrics = {
+  apiResponseTime: endTime - startTime,
+  memoryUsage: process.memoryUsage(),
+  cpuUsage: process.cpuUsage(),
+  activeConnections: server.connections
+};
+```
+
+## 🔄 CI/CD 配置
+
+### 1. GitHub Actions
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+    
+    - name: Install dependencies
+      run: bun install
+    
+    - name: Type check
+      run: bun run type-check
+    
+    - name: Lint
+      run: bun run lint
+    
+    - name: Build
+      run: bun run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.ORG_ID }}
+        vercel-project-id: ${{ secrets.PROJECT_ID }}
+        vercel-args: '--prod'
+```
+
+### 2. GitLab CI
+
+```yaml
+# .gitlab-ci.yml
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  NODE_ENV: production
+
+test:
+  stage: test
+  image: node:18-alpine
+  before_script:
+    - npm install -g bun
+    - bun install
+  script:
+    - bun run type-check
+    - bun run lint
+    - bun run build
+
+deploy:
+  stage: deploy
+  image: node:18-alpine
+  only:
+    - main
+  script:
+    - echo "Deploying to production..."
+    # 添加你的部署脚本
+```
+
+## 🚨 故障排除
+
+### 1. 常见部署问题
+
+#### 问题：环境变量未生效
+
+```bash
+# 检查环境变量
+echo $MERAKI_API_KEY
+printenv | grep MERAKI
+
+# 重启应用
+pm2 restart all
+# 或
+docker-compose restart
+```
+
+#### 问题：API调用失败
+
+```bash
+# 检查网络连接
+curl -I https://api.meraki.cn/api/v1/organizations
+
+# 检查API密钥
+curl -H "X-Cisco-Meraki-API-Key: $MERAKI_API_KEY" \
+  https://api.meraki.cn/api/v1/organizations
+```
+
+#### 问题：权限被拒绝
+
+```bash
+# 检查权限配置
+echo $NEXT_PUBLIC_PLUGIN_WHITELIST
+echo $NEXT_PUBLIC_API_PERMISSION_MERAKI_ORGANIZATION_NETWORKS
+
+# 测试权限
+curl -X POST https://your-domain.com/api/meraki/organization-networks \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "admin"}'
+```
+
+### 2. 性能问题
+
+#### 内存使用过高
+
+```bash
+# 监控内存使用
+docker stats
+# 或
+pm2 monit
+
+# 优化配置
+NODE_OPTIONS="--max-old-space-size=1024"
+```
+
+#### 响应时间过长
+
+```bash
+# 检查API响应时间
+time curl -X POST https://your-domain.com/api/meraki/organization-networks
+
+# 启用缓存
+NEXT_PUBLIC_ENABLE_CACHE=true
+CACHE_TTL=300
+```
+
+### 3. 日志分析
+
+```bash
+# 查看应用日志
+docker logs -f container_name
+# 或
+pm2 logs
+
+# 过滤错误日志
+docker logs container_name 2>&1 | grep ERROR
+
+# 分析访问模式
+tail -f /var/log/nginx/access.log | grep "/api/"
+```
+
+## 📋 部署检查清单
+
+### 部署前检查
+
+- [ ] ✅ 所有环境变量已配置
+- [ ] ✅ API密钥已验证有效
+- [ ] ✅ 权限配置已测试
+- [ ] ✅ HTTPS证书已配置
+- [ ] ✅ 域名DNS已解析
+- [ ] ✅ 防火墙规则已设置
+- [ ] ✅ 监控告警已配置
+
+### 部署后验证
+
+- [ ] ✅ 插件清单可访问 (`/manifest.json`)
+- [ ] ✅ 插件界面正常加载 (`/iframe`)
+- [ ] ✅ API端点响应正常 (`/api/*`)
+- [ ] ✅ 权限控制正常工作
+- [ ] ✅ 抽屉功能正常
+- [ ] ✅ 错误处理正常
+- [ ] ✅ 性能指标正常
+
+### 生产环境维护
+
+- [ ] ✅ 定期备份配置
+- [ ] ✅ 监控系统运行状态
+- [ ] ✅ 定期更新依赖
+- [ ] ✅ 安全漏洞扫描
+- [ ] ✅ 性能优化调整
+- [ ] ✅ 日志轮转配置
+
+## 🔧 高级配置
+
+### 1. 负载均衡
+
+```nginx
+# nginx.conf
+upstream Avaca_plugin {
+    server 127.0.0.1:3000;
+    server 127.0.0.1:3001;
+    server 127.0.0.1:3002;
+}
+
+server {
+    listen 80;
+    server_name your-domain.com;
+    
+    location / {
+        proxy_pass http://Avaca_plugin;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### 2. 缓存配置
+
+```javascript
+// Redis 缓存
+const redis = require('redis');
+const client = redis.createClient({
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT,
+  password: process.env.REDIS_PASSWORD
+});
+
+// 缓存API响应
+const cacheKey = `api:${apiName}:${userId}`;
+const cachedData = await client.get(cacheKey);
+
+if (cachedData) {
+  return JSON.parse(cachedData);
+}
+
+const freshData = await apiCall();
+await client.setex(cacheKey, 300, JSON.stringify(freshData));
+```
+
+### 3. 数据库配置
+
+```javascript
+// PostgreSQL 配置
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+// 用户权限存储
+const getUserPermissions = async (userId) => {
+  const result = await pool.query(
+    'SELECT permissions FROM users WHERE id = $1',
+    [userId]
+  );
+  return result.rows[0]?.permissions || [];
+};
+```
+
+## 📈 扩展和优化
+
+### 1. 多租户支持
+
+```javascript
+// 租户隔离
+const getTenantConfig = (tenantId) => {
+  return {
+    apiKey: process.env[`${tenantId.toUpperCase()}_API_KEY`],
+    baseUrl: process.env[`${tenantId.toUpperCase()}_API_URL`],
+    permissions: process.env[`${tenantId.toUpperCase()}_PERMISSIONS`]
+  };
+};
+```
+
+### 2. 插件热更新
+
+```javascript
+// 插件版本管理
+const pluginVersion = process.env.PLUGIN_VERSION || '1.0.0';
+const manifestUrl = `https://your-domain.com/manifest.json?v=${pluginVersion}`;
+```
+
+### 3. 国际化支持
+
+```javascript
+// 多语言配置
+const i18n = {
+  'zh-CN': require('./locales/zh-CN.json'),
+  'en-US': require('./locales/en-US.json')
+};
+
+const getLocalizedText = (key, locale = 'zh-CN') => {
+  return i18n[locale]?.[key] || key;
+};
+```
+
+---
+
+## 🎉 部署完成
+
+恭喜！你已经成功部署了Avaca插件到生产环境。
+
+### 下一步
+
+1. **监控运行状态**：设置监控告警
+2. **性能优化**：根据使用情况调整配置
+3. **用户反馈**：收集用户使用反馈
+4. **功能迭代**：基于需求持续改进
+
+### 技术支持
+
+- 📖 查看 [框架架构文档](./FRAMEWORK_ARCHITECTURE.mdc)
+- 📝 参考 [开发指南](./PLUGIN_DEVELOPMENT_GUIDE.mdc)
+- 🐛 提交 Issue 获取帮助
+- 💬 加入社区讨论
+
+---
+
+*最后更新: 2025年1月 | 版本: v4.0 | 状态: ✅ 企业级重构完成*
