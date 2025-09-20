@@ -1,28 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  transpilePackages: [],
-  // Reduce file watchers usage in dev to avoid ENOSPC on WSL/Docker
-  webpackDevMiddleware: (config) => {
-    config.watchOptions = {
-      ...(config.watchOptions || {}),
-      // Enable polling to avoid exhausting inotify watchers
-      poll: 1000,
-      aggregateTimeout: 300,
-      // Ignore heavy directories
-      ignored: [
-        ...(config.watchOptions?.ignored || []),
-        '**/.git/**',
-        '**/.next/**',
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/build/**',
-        '**/.turbo/**',
-        '**/coverage/**',
-      ],
-    };
-    return config;
-  },
   async headers() {
     return [
       {
