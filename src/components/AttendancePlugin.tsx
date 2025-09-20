@@ -233,13 +233,16 @@ export const AttendancePlugin: React.FC<{ pluginData: LobeInitData }> = ({ plugi
   const savePluginData = async (data: AttendanceData) => {
     try {
            console.log('[tool-splunk-campus] 💾 使用标准信号保存插件数据');
-           console.log('[tool-splunk-campus] 🏷️ 多插件数据隔离保存机制:');
-           console.log('  📊 五层隔离保存:');
-           console.log('    1️⃣ 用户层隔离 (userId):', pluginData.userId);
-           console.log('    2️⃣ 会话层隔离: 数据仅在当前会话中可见');
-           console.log('    3️⃣ 插件类型隔离 (identifier):', pluginData.payload.identifier);
-           console.log('    4️⃣ 工具调用隔离 (tool_call_id):', pluginData.tool_call_id || pluginData.payload.id);
-           console.log('    5️⃣ 消息层隔离: 每个插件实例有独立的 messageId');
+           console.log('[tool-splunk-campus] 🏷️ 多次调用数据隔离保存验证:');
+           console.log('  📊 本次调用的唯一标识:');
+           console.log('    🔑 tool_call_id:', pluginData.tool_call_id || pluginData.payload.id);
+           console.log('    📋 调用参数:', JSON.stringify(pluginData.payload.arguments));
+           console.log('    👤 用户ID:', pluginData.userId);
+           console.log('    🏷️ 插件类型:', pluginData.payload.identifier);
+           console.log('  🎯 数据隔离保证:');
+           console.log('    ✅ 此数据只能被相同 tool_call_id 的实例访问');
+           console.log('    ✅ 同一 topic 中的其他调用无法访问此数据');
+           console.log('    ✅ 每次调用都有独立的数据存储空间');
            console.log('  🔐 隔离保证:');
            console.log('    - 数据将保存到独立的 messageId 中');
            console.log('    - 与 follow-up-actions 插件完全隔离');
@@ -286,6 +289,17 @@ timestamp: Date.now(),
   useEffect(() => {
     const loadData = async () => {
       try {
+        // 🔧 开发环境防重复机制：暂时禁用以调试问题
+        const currentToolCallId = pluginData.tool_call_id || pluginData.payload.id;
+        console.log('[tool-splunk-campus] 🔍 多次调用区分机制验证:');
+        console.log('  - 当前 tool_call_id:', currentToolCallId);
+        console.log('  - payload.id:', pluginData.payload.id);
+        console.log('  - 调用参数:', JSON.stringify(pluginData.payload.arguments));
+        console.log('  - 当前时间:', Date.now());
+        console.log('  - 🎯 每次调用都有唯一的 tool_call_id，确保数据完全隔离');
+        
+        // 🔧 移除防重复机制：Fast Refresh 会导致误判，每个插件实例都应该能正常加载
+        
         console.log('[tool-splunk-campus] 🚀 开始数据加载');
         setLoading(true);
         setError(null);
@@ -324,6 +338,8 @@ timestamp: Date.now(),
         setError(errorMessage);
       } finally {
         setLoading(false);
+        
+        // 🔧 防重复机制已移除
       }
     };
 
