@@ -2,39 +2,236 @@
   "$schema": "../node_modules/@lobehub/chat-plugin-sdk/schema.json",
   "api": [
     {
-      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/school-attendance/data",
-      "name": "getSchoolAttendance",
-      "description": "Return the attendance data of the middle school at Shanghai Campus with interactive charts and analysis.",
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/device-status",
+      "name": "getDeviceStatus",
+      "description": "Get device status distribution with pie chart visualization using Temporal workflow.",
       "parameters": {
         "properties": {
-          "campus": {
+          "org_id": {
             "type": "string",
-            "description": "Campus name"
-          },
-          "date": {
-            "type": "string",
-            "description": "Date in YYYY-MM-DD format"
+            "description": "Organization ID (default: 850617379619606726)"
           }
         },
         "required": [],
         "type": "object"
       }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/ap-device-query",
+      "name": "queryAPDevices",
+      "description": "Query AP devices by keyword with table and scatter plot visualization.",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          },
+          "search_keyword": {
+            "type": "string",
+            "description": "Device name keyword to search"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/client-count",
+      "name": "getClientCount",
+      "description": "Get client count statistics with bar chart visualization.",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/firmware-summary",
+      "name": "getFirmwareSummary",
+      "description": "Get firmware version summary with stacked bar chart visualization.",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/license-details",
+      "name": "getLicenseDetails",
+      "description": "Get license details with gauge chart visualization.",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/device-inspection",
+      "name": "getDeviceInspection",
+      "description": "Generate device inspection report with radar chart visualization.",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/floorplan-ap",
+      "name": "getFloorplanAP",
+      "description": "Get floorplan AP distribution with tree chart visualization.",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          },
+          "floor_name": {
+            "type": "string",
+            "description": "Optional floor name filter"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/device-location",
+      "name": "getDeviceLocation",
+      "description": "Get device location map with scatter plot visualization.",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          },
+          "search_keyword": {
+            "type": "string",
+            "description": "Device name keyword"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/lost-device-trace",
+      "name": "traceLostDevice",
+      "description": "Trace lost device connection history with timeline visualization.",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          },
+          "client_mac": {
+            "type": "string",
+            "description": "Optional client MAC address"
+          },
+          "client_description": {
+            "type": "string",
+            "description": "Optional client description"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/alerts-log",
+      "name": "getAlertsLog",
+      "description": "Get alerts log with heatmap visualization.",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/charts-display",
+      "name": "displayMultipleCharts",
+      "description": "Display multiple ECharts in a dynamic layout. Use this to show results from multiple workflow executions.",
+      "parameters": {
+        "properties": {
+          "echarts_data_list": {
+            "type": "array",
+            "description": "Array of ECharts data objects from workflow results",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Chart type (pie, bar, scatter, etc.)"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Chart title"
+                },
+                "option": {
+                  "type": "object",
+                  "description": "ECharts option configuration"
+                }
+              }
+            }
+          },
+          "layout_config": {
+            "type": "object",
+            "description": "Optional layout configuration",
+            "properties": {
+              "columns": {
+                "type": "number",
+                "description": "Number of columns in grid layout"
+              },
+              "title": {
+                "type": "string",
+                "description": "Overall dashboard title"
+              }
+            }
+          }
+        },
+        "required": ["echarts_data_list"],
+        "type": "object"
+      }
     }
   ],
   "author": "JOTO",
-  "createdAt": "2025-08-14",
-  "identifier": "tool-splunk-campus",
+  "createdAt": "2025-01-22",
+  "identifier": "temporal-meraki-workflows",
   "meta": {
     "avatar": "http://plugin-demo-2-avaca-dev.jototech.cn/logo.jpg",
-    "tags": ["splunk", "school", "attendance"],
-    "title": "School Attendance Data",
-    "description": "When user asks about 'show me middle school attendance at Shanghai Campus', this plugin will return comprehensive attendance data with interactive charts and detailed analysis."
+    "tags": ["temporal", "meraki", "network", "monitoring", "workflows"],
+    "title": "Temporal Meraki Workflows",
+    "description": "Comprehensive Meraki network management through Temporal workflows. Supports 10 different network analysis scenarios with interactive ECharts visualizations including device status, AP queries, client statistics, firmware analysis, license management, device inspection, floorplan mapping, location tracking, device tracing, and alerts monitoring."
   },
   "type": "standalone",
   "ui": {
     "url": "http://plugin-demo-2-avaca-dev.jototech.cn/iframe",
-    "height": 520,
-    "width": 980
+    "height": 600,
+    "width": 1200
   },
   "version": "1"
 }

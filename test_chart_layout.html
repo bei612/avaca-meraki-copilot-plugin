@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图表布局测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #e6e6fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .layout-demo {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(15, 15, 35, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .layout-title {
+            color: #c4b5fd;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .chart-grid {
+            display: grid;
+            gap: 20px;
+            align-items: stretch;
+        }
+        
+        .grid-1 { grid-template-columns: 1fr; }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        
+        .chart-item {
+            background: rgba(15, 15, 35, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        
+        .chart-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
+        }
+        
+        .chart-header {
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            text-align: center;
+        }
+        
+        .chart-title {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        .chart-type {
+            font-size: 10px;
+            color: #9370db;
+            margin-top: 2px;
+        }
+        
+        .chart-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #c4b5fd;
+            font-size: 14px;
+            min-height: 280px;
+            background: linear-gradient(45deg, rgba(138, 43, 226, 0.1), rgba(255, 105, 180, 0.1));
+            border-radius: 6px;
+        }
+        
+        /* 单个图表居中显示 */
+        .single-chart {
+            grid-column: 1 / -1;
+        }
+        
+        /* 奇数个图表时，最后一个居中 */
+        .center-last {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            <h1>📊 优化后的图表布局展示</h1>
+            <p>每行最多显示2个图表，按需撑满宽度</p>
+        </div>
+
+        <!-- 1个图表 -->
+        <div class="layout-demo">
+            <div class="layout-title">1个图表 - 居中显示</div>
+            <div class="chart-grid grid-1">
+                <div class="chart-item single-chart">
+                    <div class="chart-header">
+                        <h3 class="chart-title">设备状态分布</h3>
+                        <div class="chart-type">PIE</div>
+                    </div>
+                    <div class="chart-content">
+                        🥧 饼图 - 撑满整行宽度
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2个图表 -->
+        <div class="layout-demo">
+            <div class="layout-title">2个图表 - 平分一行</div>
+            <div class="chart-grid grid-2">
+                <div class="chart-item">
+                    <div class="chart-header">
+                        <h3 class="chart-title">设备状态分布</h3>
+                        <div class="chart-type">PIE</div>
+                    </div>
+                    <div class="chart-content">
+                        🥧 饼图
+                    </div>
+                </div>
+                <div class="chart-item">
+                    <div class="chart-header">
+                        <h3 class="chart-title">客户端数量统计</h3>
+                        <div class="chart-type">BAR</div>
+                    </div>
+                    <div class="chart-content">
+                        📊 柱状图
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3个图表 -->
+        <div class="layout-demo">
+            <div class="layout-title">3个图表 - 2+1布局</div>
+            <div class="chart-grid grid-2">
+                <div class="chart-item">
+                    <div class="chart-header">
+                        <h3 class="chart-title">设备状态分布</h3>
+                        <div class="chart-type">PIE</div>
+                    </div>
+                    <div class="chart-content">
+                        🥧 饼图
+                    </div>
+                </div>
+                <div class="chart-item">
+                    <div class="chart-header">
+                        <h3 class="chart-title">客户端数量统计</h3>
+                        <div class="chart-type">BAR</div>
+                    </div>
+                    <div class="chart-content">
+                        📊 柱状图
+                    </div>
+                </div>
+                <div class="chart-item center-last">
+                    <div class="chart-header">
+                        <h3 class="chart-title">许可证状态</h3>
+                        <div class="chart-type">GAUGE</div>
+                    </div>
+                    <div class="chart-content">
+                        🎯 仪表盘 - 居中显示
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4个图表 -->
+        <div class="layout-demo">
+            <div class="layout-title">4个图表 - 2x2布局</div>
+            <div class="chart-grid grid-2">
+                <div class="chart-item">
+                    <div class="chart-header">
+                        <h3 class="chart-title">设备状态分布</h3>
+                        <div class="chart-type">PIE</div>
+                    </div>
+                    <div class="chart-content">
+                        🥧 饼图
+                    </div>
+                </div>
+                <div class="chart-item">
+                    <div class="chart-header">
+                        <h3 class="chart-title">客户端数量统计</h3>
+                        <div class="chart-type">BAR</div>
+                    </div>
+                    <div class="chart-content">
+                        📊 柱状图
+                    </div>
+                </div>
+                <div class="chart-item">
+                    <div class="chart-header">
+                        <h3 class="chart-title">许可证状态</h3>
+                        <div class="chart-type">GAUGE</div>
+                    </div>
+                    <div class="chart-content">
+                        🎯 仪表盘
+                    </div>
+                </div>
+                <div class="chart-item">
+                    <div class="chart-header">
+                        <h3 class="chart-title">设备巡检报告</h3>
+                        <div class="chart-type">RADAR</div>
+                    </div>
+                    <div class="chart-content">
+                        🕸️ 雷达图
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5个图表 -->
+        <div class="layout-demo">
+            <div class="layout-title">5个图表 - 2+2+1布局</div>
+            <div class="chart-grid grid-2">
+                <div class="chart-item">
+                    <div class="chart-header">
+                        <h3 class="chart-title">设备状态分布</h3>
+                        <div class="chart-type">PIE</div>
+                    </div>
+                    <div class="chart-content">
+                        🥧 饼图
+                    </div>
+                </div>
+                <div class="chart-item">
+                    <div class="chart-header">
+                        <h3 class="chart-title">客户端数量统计</h3>
+                        <div class="chart-type">BAR</div>
+                    </div>
+                    <div class="chart-content">
+                        📊 柱状图
+                    </div>
+                </div>
+                <div class="chart-item">
+                    <div class="chart-header">
+                        <h3 class="chart-title">许可证状态</h3>
+                        <div class="chart-type">GAUGE</div>
+                    </div>
+                    <div class="chart-content">
+                        🎯 仪表盘
+                    </div>
+                </div>
+                <div class="chart-item">
+                    <div class="chart-header">
+                        <h3 class="chart-title">设备巡检报告</h3>
+                        <div class="chart-type">RADAR</div>
+                    </div>
+                    <div class="chart-content">
+                        🕸️ 雷达图
+                    </div>
+                </div>
+                <div class="chart-item center-last">
+                    <div class="chart-header">
+                        <h3 class="chart-title">楼层AP分布</h3>
+                        <div class="chart-type">TREE</div>
+                    </div>
+                    <div class="chart-content">
+                        🌳 树图 - 居中显示
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; color: #9370db;">
+            <p>✨ 优化特点：</p>
+            <ul style="display: inline-block; text-align: left;">
+                <li>每行最多显示2个图表</li>
+                <li>单个图表时居中显示并撑满宽度</li>
+                <li>奇数个图表时，最后一个居中显示</li>
+                <li>图表高度一致，视觉效果更佳</li>
+                <li>增加了图表间距，布局更舒适</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

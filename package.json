@@ -57,6 +57,9 @@
   "dependencies": {
     "@lobehub/chat-plugin-sdk": "^1",
     "@lobehub/chat-plugins-gateway": "^1",
+    "@temporalio/client": "^1.13.0",
+    "@temporalio/worker": "^1.13.0",
+    "@temporalio/workflow": "^1.13.0",
     "@types/echarts": "^5.0.0",
     "antd": "^5",
     "antd-style": "^3",

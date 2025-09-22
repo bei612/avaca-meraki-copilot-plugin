@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { AttendancePlugin } from '../../components/AttendancePlugin';
+import { TemporalPlugin } from '../../components/TemporalPlugin';
 import type { LobeInitData } from '../../types';
 import { lobeClient } from '../../utils/lobeClient';
 
@@ -156,7 +156,7 @@ const PluginApp: React.FC = () => {
     );
   }
 
-  return <AttendancePlugin pluginData={pluginData} />;
+  return <TemporalPlugin pluginData={pluginData} />;
 };
 
 export default PluginApp;
