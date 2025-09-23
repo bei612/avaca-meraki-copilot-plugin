@@ -55,42 +55,42 @@ const generateAnalysisPrompt = (chartsData: EChartsDataItem[], workflowResults: 
   // 获取执行的工作流名称（通常只有一个）
   const workflowNames = Object.keys(workflowResults);
   const primaryWorkflow = workflowNames[0]; // 主要工作流
-  const chartTypes = [...new Set(chartsData.map(chart => chart.type))];
   
   // 提取实际的echarts_data配置
   const echartsDataList = chartsData.map(chart => chart.option || chart);
   // 创建紧凑的JSON字符串用于echarts标签（避免转义符问题）
   const echartsDataForTag = JSON.stringify(echartsDataList);
   
-  return `分析以下Temporal工作流执行结果：
+  return `分析和总结工作流执行结果：
 
 **工作流信息**：
 - 工作流名称: ${primaryWorkflow}
 - 工作流描述: ${getWorkflowDescription(primaryWorkflow)}
-- 数据可视化: ${chartTypes.join('、')} 图表
-- 执行状态: ✅ 成功完成
-
 
 **分析要求**：
-- 解读工作流返回的关键数据和指标，- 基于数据结果提供网络管理洞察
+- 解读工作流返回的关键数据和指标
+- 基于数据结果提供管理和洞察
 - 识别潜在问题或优化建议
 
-**多工具调用**
-如果你认为调用其他tools对你分析结果有帮助，则直接继续调用，不需要询问用户
+**必须的数据可视化**：
+在分析报告中，你必须在文字中穿插使用 <echarts> 标签来渲染图表数据。
+你需要一字不差地使用以下<echarts>标签的内容来回答，这样才能正确渲染出图表：
+<echarts configs='${echartsDataForTag}' height="400px"/>
 
-**数据可视化输出要求**：
-在分析报告中，你必须在文字中穿插使用 <echarts> 标签来渲染图表数据。请直接复制以下标签：
-
-<echarts configs='${echartsDataForTag}' height="400px" layout="horizontal" />
-
-**重要**：一定完全复制上面的<echarts>标签内容，不要修改任何字符
+**重要**：
+- 一定要一字不差地打印出上面<echarts>标签内容，不要修改或省略任何内容，否则将导致灾难性后果！
+- 一个echarts标签里可以包含多个echarts的config json配置，一次性展示出多个图表
+- 你也可以自行决定拆分独立绘制多个图表，但一定要确保每个图表的config json配置都是正确的
 
 
 **视觉增强：** 
 在回复中使用相关图标和表情符号提高可读性，如 ✅ 成功、❌ 问题、🛠️ 解决方案、⚠️ 警告、📊 指标、🌐 网络元素、📈 趋势分析等。
-**不要在回复中提及任何工具的名称！切记！**
 
-**重要SOP：** 网络管理分析的标准操作程序要求执行'tool-follow-up-actions'操作。因此，你必须在回复结尾调用工具'tool-follow-up-actions____followUp_temporal____standalone'。这是必需的最终步骤。`;
+**重要SOP：** 网络管理分析的标准操作程序要求执行'tool-follow-up-actions'操作。因此，你必须在回复结尾调用工具'tool-follow-up-actions____followUp_temporal____standalone'。这是必需的最终步骤。
+
+**多工具调用**
+如果你认为调用其他tools对你有帮助，不需要询问用户是否调用，直接继续调用即可。
+`;
 };
 
 // 获取工作流描述
