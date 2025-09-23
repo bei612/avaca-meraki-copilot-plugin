@@ -57,6 +57,11 @@ const generateAnalysisPrompt = (chartsData: EChartsDataItem[], workflowResults: 
   const primaryWorkflow = workflowNames[0]; // 主要工作流
   const chartTypes = [...new Set(chartsData.map(chart => chart.type))];
   
+  // 提取实际的echarts_data配置
+  const echartsDataList = chartsData.map(chart => chart.option || chart);
+  // 创建紧凑的JSON字符串用于echarts标签（避免转义符问题）
+  const echartsDataForTag = JSON.stringify(echartsDataList);
+  
   return `分析以下Temporal工作流执行结果：
 
 **工作流信息**：
@@ -64,6 +69,7 @@ const generateAnalysisPrompt = (chartsData: EChartsDataItem[], workflowResults: 
 - 工作流描述: ${getWorkflowDescription(primaryWorkflow)}
 - 数据可视化: ${chartTypes.join('、')} 图表
 - 执行状态: ✅ 成功完成
+
 
 **分析要求**：
 - 解读工作流返回的关键数据和指标，- 基于数据结果提供网络管理洞察
@@ -73,29 +79,12 @@ const generateAnalysisPrompt = (chartsData: EChartsDataItem[], workflowResults: 
 如果你认为调用其他tools对你分析结果有帮助，则直接继续调用，不需要询问用户
 
 **数据可视化输出要求**：
-在分析报告中，你必须在文字中穿插使用 <echarts> 标签来渲染图表数据。根据图表数量选择合适的渲染方式：
+在分析报告中，你必须在文字中穿插使用 <echarts> 标签来渲染图表数据。请直接复制以下标签：
 
-1. **单个图表**：使用 config 参数
-\`\`\`
-<echarts config='{"title":{"text":"图表标题"},"series":[...]}' height="400px" />
-\`\`\`
+<echarts configs='${echartsDataForTag}' height="400px" layout="horizontal" />
 
-2. **1-2个图表**：使用 configs 参数横向排列
-\`\`\`
-<echarts configs='[{"title":{"text":"图表1"},"series":[...]},{"title":{"text":"图表2"},"series":[...]}]' height="400px" layout="horizontal" />
-\`\`\`
+**重要**：一定完全复制上面的<echarts>标签内容，不要修改任何字符
 
-3. **超过2个图表**：使用多个 echarts 标签分组展示
-\`\`\`
-<echarts configs='[{"title":{"text":"图表1"},"series":[...]},{"title":{"text":"图表2"},"series":[...]}]' height="400px" layout="horizontal" />
-<echarts configs='[{"title":{"text":"图表3"},"series":[...]},{"title":{"text":"图表4"},"series":[...]}]' height="400px" layout="horizontal" />
-\`\`\`
-
-**重要**：
-- 必须使用工作流返回的实际 ECharts 配置数据
-- 确保 JSON 配置格式正确且可解析
-- 为每个图表设置合适的标题和样式
-- 使用 layout="horizontal" 实现横向排列
 
 **视觉增强：** 
 在回复中使用相关图标和表情符号提高可读性，如 ✅ 成功、❌ 问题、🛠️ 解决方案、⚠️ 警告、📊 指标、🌐 网络元素、📈 趋势分析等。
@@ -109,6 +98,7 @@ const getWorkflowDescription = (workflowId: string): string => {
   const descriptions: Record<string, string> = {
     'alerts-log': '网络告警日志分析',
     'ap-device-query': 'AP设备查询和定位',
+    'capacity-planning': '容量规划分析',
     'client-count': '客户端连接统计',
     'device-inspection': '设备健康巡检',
     'device-location': '设备地理位置分析',
@@ -116,9 +106,111 @@ const getWorkflowDescription = (workflowId: string): string => {
     'firmware-summary': '固件版本分布汇总',
     'floorplan-ap': '楼层AP分布图',
     'license-details': '许可证状态检查',
-    'lost-device-trace': '丢失设备连接追踪'
+    'lost-device-trace': '丢失设备连接追踪',
+    'network-health-analysis': '网络健康全景分析',
+    'security-posture': '安全态势感知分析',
+    'troubleshooting': '运维故障诊断分析'
   };
   return descriptions[workflowId] || '未知工作流';
+};
+
+// 获取工作流调用的Meraki API端点
+const getMerakiApiEndpoints = (workflowId: string): string[] => {
+  const endpointsMap: Record<string, string[]> = {
+    'alerts-log': [
+      'GET /organizations/{organizationId}/assurance/alerts',
+      'GET /organizations/{organizationId}/networks',
+      'GET /networks/{networkId}/events'
+    ],
+    'ap-device-query': [
+      'GET /organizations/{organizationId}/devices',
+      'GET /devices/{serial}'
+    ],
+    'capacity-planning': [
+      'GET /organizations/{organizationId}/devices',
+      'GET /organizations/{organizationId}/licenses/overview',
+      'GET /organizations/{organizationId}/summary/top/applications/byUsage',
+      'GET /organizations/{organizationId}/summary/top/clients/byUsage',
+      'GET /organizations/{organizationId}/devices/statuses/overview'
+    ],
+    'client-count': [
+      'GET /organizations/{organizationId}/networks',
+      'GET /networks/{networkId}/clients/overview'
+    ],
+    'device-inspection': [
+      'GET /organizations/{organizationId}/devices/statuses/overview',
+      'GET /organizations/{organizationId}/assurance/alerts',
+      'GET /organizations/{organizationId}/networks'
+    ],
+    'device-location': [
+      'GET /organizations/{organizationId}/devices',
+      'GET /devices/{serial}',
+      'GET /networks/{networkId}/floorPlans/{floorPlanId}'
+    ],
+    'device-status': [
+      'GET /organizations/{organizationId}/devices/statuses/overview',
+      'GET /organizations/{organizationId}/devices',
+      'GET /organizations/{organizationId}/assurance/alerts'
+    ],
+    'firmware-summary': [
+      'GET /organizations/{organizationId}/devices'
+    ],
+    'floorplan-ap': [
+      'GET /organizations/{organizationId}/networks',
+      'GET /networks/{networkId}/floorPlans',
+      'GET /networks/{networkId}/floorPlans/{floorPlanId}'
+    ],
+    'license-details': [
+      'GET /organizations/{organizationId}/licenses/overview'
+    ],
+    'lost-device-trace': [
+      'GET /organizations/{organizationId}/networks',
+      'GET /networks/{networkId}/clients',
+      'GET /networks/{networkId}/wireless/clients/{clientId}/connectionStats'
+    ],
+    'network-health-analysis': [
+      'GET /organizations/{organizationId}/devices/statuses/overview',
+      'GET /organizations/{organizationId}/assurance/alerts',
+      'GET /organizations/{organizationId}/networks',
+      'GET /networks/{networkId}/clients/overview'
+    ],
+    'security-posture': [
+      'GET /organizations/{organizationId}/networks',
+      'GET /networks/{networkId}/appliance/firewall/l3FirewallRules',
+      'GET /networks/{networkId}/appliance/firewall/l7FirewallRules',
+      'GET /networks/{networkId}/wireless/airMarshal',
+      'GET /organizations/{organizationId}/assurance/alerts'
+    ],
+    'troubleshooting': [
+      'GET /organizations/{organizationId}/devices/statuses/overview',
+      'GET /organizations/{organizationId}/assurance/alerts',
+      'GET /devices/{serial}/lossAndLatencyHistory',
+      'GET /organizations/{organizationId}/uplinks/statuses'
+    ]
+  };
+  return endpointsMap[workflowId] || [];
+};
+
+// 根据API名称获取对应的Meraki API端点
+const getMerakiApiEndpointsByApiName = (apiName: string): string[] => {
+  const apiToWorkflowMap: Record<string, string> = {
+    'getAlertsLog': 'alerts-log',
+    'getCapacityPlanning': 'capacity-planning',
+    'getClientCount': 'client-count',
+    'getDeviceInspection': 'device-inspection',
+    'getDeviceLocation': 'device-location',
+    'getDeviceStatus': 'device-status',
+    'getFirmwareSummary': 'firmware-summary',
+    'getFloorplanAP': 'floorplan-ap',
+    'getLicenseDetails': 'license-details',
+    'getNetworkHealthAnalysis': 'network-health-analysis',
+    'getSecurityPosture': 'security-posture',
+    'getTroubleshooting': 'troubleshooting',
+    'queryAPDevices': 'ap-device-query',
+    'traceLostDevice': 'lost-device-trace'
+  };
+  const workflowId = apiToWorkflowMap[apiName];
+  return workflowId ? getMerakiApiEndpoints(workflowId) : [];
 };
 
 // 打开详细数据抽屉
@@ -132,28 +224,42 @@ const openDrawer = async (title: string, data: any) => {
         return '<span style="color: #9ca3af; font-style: italic;">无数据</span>';
       }
       
-      // 检查是否是JSON高亮显示类型
-      if (typeof value === 'object' && value !== null && 'type' in value && value.type === 'json-highlight') {
+      // 检查是否是JSON显示类型
+      if (typeof value === 'object' && value !== null && 'type' in value && value.type === 'json-markdown') {
         const jsonString = JSON.stringify(value.data, null, 2);
+        // HTML转义函数，防止JSON中的HTML标签被渲染
+        const escapeHtml = (text: string) => {
+          return text
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll('\'', '&#39;');
+        };
+        const escapedJsonString = escapeHtml(jsonString);
+        
         return `
           <div style="
-            background: #1a1a2e;
-            border: 1px solid #16213e;
-            border-radius: 8px;
-            font-family: Monaco, Consolas, 'Courier New', monospace;
-            font-size: 12px;
-            line-height: 1.4;
+            background: #0f0f23;
+            border: 1px solid #2d2d44;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 8px 0;
             max-height: 400px;
-            min-width: 400px;
-            width: 100%;
-            overflow-y: auto;
-            overflow-x: auto;
-            padding: 12px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            -webkit-overflow-scrolling: touch;
+            overflow: auto;
+            font-family: 'SF Mono', Monaco, Inconsolata, 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.45;
           ">
-            <div style="color: #a78bfa;">${jsonString}</div>
+            <pre style="
+              margin: 0;
+              padding: 0;
+              background: transparent;
+              border: none;
+              color: #f8f8f2;
+              white-space: pre-wrap;
+              word-wrap: break-word;
+            ">${escapedJsonString}</pre>
           </div>
         `;
       }
@@ -621,6 +727,7 @@ workflow_results: fullWorkflowResults
           // 将 API 名称映射到工作流 ID
           const apiToWorkflowMap: Record<string, string> = {
             'getAlertsLog': 'alerts-log',
+            'getCapacityPlanning': 'capacity-planning',
             'getClientCount': 'client-count',
             'getDeviceInspection': 'device-inspection',
             'getDeviceLocation': 'device-location',
@@ -628,6 +735,9 @@ workflow_results: fullWorkflowResults
             'getFirmwareSummary': 'firmware-summary',
             'getFloorplanAP': 'floorplan-ap',
             'getLicenseDetails': 'license-details',
+            'getNetworkHealthAnalysis': 'network-health-analysis',
+            'getSecurityPosture': 'security-posture',
+            'getTroubleshooting': 'troubleshooting',
             'queryAPDevices': 'ap-device-query',
             'traceLostDevice': 'lost-device-trace'
           };
@@ -780,7 +890,7 @@ workflow_results: fullWorkflowResults
       })(),
       '🗄️ 工作流完整返回': {
         data: fullWorkflowData || { error: '无完整数据' },
-        type: 'json-highlight'
+        type: 'json-markdown'
       }
     };
     
@@ -804,42 +914,82 @@ workflow_results: fullWorkflowResults
       }}>
         {/* 文字组件 - 显示所有状态信息 */}
         <div style={{
-          alignItems: 'center',
+          alignItems: 'flex-start',
           display: 'flex',
-          justifyContent: 'space-between',
+          flexDirection: 'column',
           marginBottom: '8px'
         }}>
           <div style={{
-            color: '#ffffff',
-            fontSize: '16px',
-            fontWeight: '600'
-          }}>
-            {error 
-              ? `执行失败: ${error}` 
-              : loading 
-                ? currentOperation 
-                : `工作流: ${Object.keys(workflowResults)[0] || 'unknown'}`
-            }
-          </div>
-          <div style={{
             alignItems: 'center',
             display: 'flex',
-            gap: '8px'
+            justifyContent: 'space-between',
+            width: '100%'
           }}>
             <div style={{
-              background: error ? '#ef4444' : loading ? '#f59e0b' : '#10b981',
-              borderRadius: '50%',
-              height: '8px',
-              width: '8px'
-            }} />
-            <span style={{
-              color: error ? '#ef4444' : loading ? '#f59e0b' : '#10b981',
-              fontSize: '12px',
-              fontWeight: '500'
+              color: '#ffffff',
+              fontSize: '16px',
+              fontWeight: '600'
             }}>
-              {error ? '执行失败' : loading ? '执行中' : '执行完成'}
-            </span>
+              {error 
+                ? `执行失败: ${error}` 
+                : loading 
+                  ? currentOperation 
+                  : `工作流: ${Object.keys(workflowResults)[0] || 'unknown'}`
+            }
+            </div>
+            <div style={{
+              alignItems: 'center',
+              display: 'flex',
+              gap: '8px'
+            }}>
+              <div style={{
+                background: error ? '#ef4444' : loading ? '#f59e0b' : '#10b981',
+                borderRadius: '50%',
+                height: '8px',
+                width: '8px'
+              }} />
+              <span style={{
+                color: error ? '#ef4444' : loading ? '#f59e0b' : '#10b981',
+                fontSize: '12px',
+                fontWeight: '500'
+              }}>
+                {error ? '执行失败' : loading ? '执行中' : '执行完成'}
+              </span>
+            </div>
           </div>
+          
+          {/* Meraki API 端点信息 */}
+          {(() => {
+            let endpoints: string[] = [];
+            if (pluginData?.payload?.apiName) {
+              endpoints = getMerakiApiEndpointsByApiName(pluginData.payload.apiName);
+            } else if (Object.keys(workflowResults).length > 0) {
+              const workflowId = Object.keys(workflowResults)[0];
+              endpoints = getMerakiApiEndpoints(workflowId);
+            }
+            
+            if (endpoints.length > 0) {
+              return (
+                <div style={{
+                  color: '#94a3b8',
+                  fontFamily: 'Monaco, Consolas, "Courier New", monospace',
+                  fontSize: '10px',
+                  marginTop: '6px',
+                  opacity: 0.8
+                }}>
+                  {endpoints.map((endpoint, index) => (
+                    <div key={index} style={{ 
+                      lineHeight: '1.3', 
+                      marginBottom: '1px'
+                    }}>
+                      • {endpoint}
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>
         
         {/* 进度条 - 根据状态显示不同样式 */}
@@ -923,7 +1073,6 @@ workflow_results: fullWorkflowResults
           ))}
         </div>
       )}
-
 
       <style>{`
         @keyframes progressComplete {

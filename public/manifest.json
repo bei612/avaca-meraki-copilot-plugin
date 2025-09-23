@@ -216,6 +216,66 @@
         "required": ["echarts_data_list"],
         "type": "object"
       }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/network-health-analysis",
+      "name": "getNetworkHealthAnalysis",
+      "description": "Comprehensive network health analysis with multiple chart visualizations (pie + bar + scatter + gauge).",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/security-posture",
+      "name": "getSecurityPosture",
+      "description": "Security posture analysis with tree + radar + heatmap + bar chart visualizations.",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/troubleshooting",
+      "name": "getTroubleshooting",
+      "description": "Operations troubleshooting analysis with radar + timeline chart visualizations.",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "url": "http://plugin-demo-2-avaca-dev.jototech.cn/api/temporal/capacity-planning",
+      "name": "getCapacityPlanning",
+      "description": "Capacity planning analysis with gauge + timeline + stacked bar + pie chart visualizations.",
+      "parameters": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Organization ID (default: 850617379619606726)"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
     }
   ],
   "author": "JOTO",
@@ -230,7 +290,7 @@
   "type": "standalone",
   "ui": {
     "url": "http://plugin-demo-2-avaca-dev.jototech.cn/iframe",
-    "height": 200,
+    "height": 250,
     "width": 1200
   },
   "version": "1"

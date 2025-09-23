@@ -1,8 +1,8 @@
 {
-  "name": "school-attendance-analytics",
+  "name": "temporal-meraki-workflows",
   "version": "1.0.0",
   "private": true,
-  "description": "School Attendance Analytics Plugin for LobeChat - Standard Implementation",
+  "description": "Temporal Meraki Workflows Plugin for LobeChat - Comprehensive Network Management",
   "homepage": "https://github.com/your-org/lobechat-plugin-boilerplate",
   "repository": "https://github.com/your-org/lobechat-plugin-boilerplate.git",
   "workspaces": [
