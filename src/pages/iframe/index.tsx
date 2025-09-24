@@ -136,7 +136,7 @@ const PluginApp: React.FC = () => {
         height: '400px',
         justifyContent: 'center'
       }}>
-        正在初始化插件...
+        Initializing plugin...
       </div>
     );
   }
@@ -151,7 +151,7 @@ const PluginApp: React.FC = () => {
         height: '400px',
         justifyContent: 'center'
       }}>
-        插件数据加载失败
+        Plugin data loading failed
       </div>
     );
   }

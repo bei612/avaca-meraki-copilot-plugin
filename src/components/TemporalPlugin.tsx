@@ -57,14 +57,14 @@ const generateAnalysisPrompt = (chartsData: EChartsDataItem[], workflowResults: 
   const primaryWorkflow = workflowNames[0]; // 主要工作流
   
   // 使用字符串拼接构建完整的提示词，避免模板字符串的转义问题
-  const workflowInfo = `**工作流信息**：
-- 工作流名称: ${primaryWorkflow}
-- 工作流描述: ${getWorkflowDescription(primaryWorkflow)}`;
+  const workflowInfo = `**Workflow Information**：
+- Workflow Name: ${primaryWorkflow}
+- Workflow Description: ${getWorkflowDescription(primaryWorkflow)}`;
 
-  const analysisRequirements = `**分析要求**：
-- 解读工作流返回的关键数据和指标
-- 基于数据结果提供管理和洞察
-- 识别潜在问题或优化建议`;
+  const analysisRequirements = `**Analysis Requirements**：
+- Interpret key data and metrics returned by the workflow
+- Provide management insights based on data results
+- Identify potential issues or optimization recommendations`;
 
   // 从 workflow echarts_data 中提取 option 配置
   const echartsConfigs = chartsData.map(chart => chart.option);
@@ -72,37 +72,37 @@ const generateAnalysisPrompt = (chartsData: EChartsDataItem[], workflowResults: 
   // 将echarts数据转换为可读的格式描述
   const chartsDescription = echartsConfigs.map((chart, index) => {
     const chartType = chart.series?.[0]?.type || 'unknown';
-    const chartTitle = chart.title?.text || `图表${index + 1}`;
-    return `${index + 1}. ${chartTitle} (${chartType}图)`;
+    const chartTitle = chart.title?.text || `Chart ${index + 1}`;
+    return `${index + 1}. ${chartTitle} (${chartType} chart)`;
   }).join('\n');
   
   const serializedConfigs = JSON.stringify(echartsConfigs);
   
-  const visualizationSection = `**必须的数据可视化**：
-在分析报告中，你必须使用以下 <echarts> 标签来渲染图表：
+  const visualizationSection = `**Required Data Visualization**：
+In the analysis report, you must use the following <echarts> tags to render charts：
 
-图表数量：${echartsConfigs.length}个
-图表列表：
+Chart count: ${echartsConfigs.length}
+Chart list:
 ${chartsDescription}
 
-**ECharts标签（请完整复制，不要修改）**：
+**ECharts Tags (Please copy completely, do not modify, do not truncate!)**：
 <echarts configs='${serializedConfigs}' height="400px"/>`;
 
-  const importantNotes = `**重要说明**：
-- 上面的 <echarts> 标签已经包含了完整的图表配置
-- 请完整复制使用，不要修改 configs 属性的内容
-- 支持多图表自动布局`;
+  const importantNotes = `**Important Notes**：
+- The above <echarts> tags already contain complete chart configurations
+- Please copy and use them completely, do not modify the configs attribute content, even if the content is extensive, do not omit or truncate anything, make sure not to lose a single character in the <echarts> tags!!! Otherwise it will be irreversible
+- Supports automatic multi-chart layout`;
 
-  const visualEnhancement = `**视觉增强：** 
-在回复中使用相关图标和表情符号提高可读性，如 ✅ 成功、❌ 问题、🛠️ 解决方案、⚠️ 警告、📊 指标、🌐 网络元素、📈 趋势分析等。`;
+  const visualEnhancement = `**Visual Enhancement：** 
+Use relevant icons and emojis in responses to improve readability, such as ✅ Success, ❌ Issues, 🛠️ Solutions, ⚠️ Warnings, 📊 Metrics, 🌐 Network Elements, 📈 Trend Analysis, etc.`;
 
-  const sopInstructions = `**重要SOP：** 网络管理分析的标准操作程序要求执行'tool-follow-up-actions'操作。因此，你必须在回复结尾调用工具'tool-follow-up-actions____followUp_temporal____standalone'。这是必需的最终步骤。
-
-**日志场景**
-如果遇到信息中有原始日志的，必须使用markdown表格把原始日志展示出来，例如直接获取 critical_alerts 的值，注意你需要全部展示，不可以省略，有几条就给出几条`;
+  const sopInstructions = `**Important SOP：** The standard operating procedure for network management analysis requires executing 'tool-follow-up-actions' operations. Therefore, you must call the tool 'tool-follow-up-actions____followUp_merakiWorkflows____standalone' at the end of your response. This is a required final step, no need to ask the user, just call it directly!
+You do not need to mention any names like tool-follow-up-actions____followUp_merakiWorkflows____standalone format in your response, no need to let users know the various tool names, just call them directly.
+**Log Scenarios**
+If you encounter information with raw logs, you must use markdown tables to display the raw logs, for example, directly get the critical_alerts values, note that you need to display all of them, do not omit, display as many as there are`;
 
   // 使用字符串拼接而不是模板字符串
-  return '分析和总结工作流执行结果：\n\n' +
+  return 'Analyze and summarize workflow execution results：\n\n' +
     workflowInfo + '\n\n' +
     analysisRequirements + '\n\n' +
     visualizationSection + '\n\n' +
@@ -239,7 +239,7 @@ const openDrawer = async (title: string, data: any) => {
     // 格式化值为简洁的表单式显示
     const formatValueForHTML = (value: any): string => {
       if (value === null || value === undefined) {
-        return '<span style="color: #9ca3af; font-style: italic;">无数据</span>';
+        return '<span style="color: #9ca3af; font-style: italic;">No data</span>';
       }
       
       // 检查是否是JSON显示类型
@@ -423,7 +423,7 @@ export const TemporalPlugin: React.FC<{ pluginData: LobeInitData }> = ({ pluginD
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isHistoryView, setIsHistoryView] = useState(false);
-  const [currentOperation, setCurrentOperation] = useState<string>("初始化中...");
+  const [currentOperation, setCurrentOperation] = useState<string>("Initializing...");
 
   // 使用 SDK 获取插件参数
   const getPluginParams = async () => {
@@ -566,10 +566,10 @@ export const TemporalPlugin: React.FC<{ pluginData: LobeInitData }> = ({ pluginD
       const endTimeISO = new Date().toISOString();
       const executionDuration = endTime - startTime;
       
-      let errorMessage = '未知错误';
+      let errorMessage = 'Unknown error';
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          errorMessage = `工作流 ${workflowId} 执行超时 (30秒)`;
+          errorMessage = `Workflow ${workflowId} execution timeout (30s)`;
         } else {
           errorMessage = error.message;
         }
@@ -685,9 +685,9 @@ workflow_results: fullWorkflowResults
       // 设置10秒超时
       const timeoutId = setTimeout(() => {
         if (!isCompleted) {
-          setError('操作超时：插件执行时间超过10秒，请稍后重试');
+          setError('Operation timeout: Plugin execution exceeded 10 seconds, please try again later');
           setLoading(false);
-          setCurrentOperation("执行超时");
+          setCurrentOperation("Execution Timeout");
           isCompleted = true; // 标记为已完成，防止后续操作
         }
       }, 10_000); // 10秒超时
@@ -708,7 +708,7 @@ workflow_results: fullWorkflowResults
             workflows_count: Object.keys(historyData.workflows).length
           });
           
-          setCurrentOperation("加载历史数据完成");
+          setCurrentOperation("Historical data loaded");
           setChartsData(historyData.charts);
           setWorkflowResults(historyData.workflows); // 恢复完整工作流数据
           setIsHistoryView(true);
@@ -723,7 +723,7 @@ workflow_results: fullWorkflowResults
         }
 
         // 2. 获取插件参数
-        setCurrentOperation("解析插件参数...");
+        setCurrentOperation("Parsing plugin parameters...");
         const params = await getPluginParams();
         console.log('[temporal-plugin] 📋 插件参数:', params);
 
@@ -733,13 +733,13 @@ workflow_results: fullWorkflowResults
 
         if (Array.isArray(workflowIds) && workflowIds.length > 0) {
           // 如果指定了多个工作流，执行所有工作流
-          setCurrentOperation(`执行 ${workflowIds.length} 个工作流...`);
+          setCurrentOperation(`Executing ${workflowIds.length} workflows...`);
           console.log('[temporal-plugin] 🔄 执行多个工作流:', workflowIds);
           newChartsData = await executeWorkflows(workflowIds, params);
         } else {
           // 如果没有指定工作流，根据 API 名称执行单个工作流
           const apiName = pluginData.payload.apiName;
-          setCurrentOperation(`执行工作流: ${apiName}...`);
+          setCurrentOperation(`Executing workflow: ${apiName}...`);
           console.log('[temporal-plugin] 🎯 根据 API 名称执行单个工作流:', apiName);
           
           // 将 API 名称映射到工作流 ID
@@ -781,15 +781,15 @@ workflow_results: fullWorkflowResults
               }
             }
           } else {
-            throw new Error(`未知的 API 名称: ${apiName}`);
+            throw new Error(`Unknown API name: ${apiName}`);
           }
         }
         
         if (newChartsData.length === 0) {
-          throw new Error('没有获取到任何图表数据');
+          throw new Error('No chart data retrieved');
         }
 
-        setCurrentOperation("保存数据...");
+        setCurrentOperation("Saving data...");
         setChartsData(newChartsData);
         setIsHistoryView(false);
 
@@ -799,7 +799,7 @@ workflow_results: fullWorkflowResults
         }
         // 单个工作流的保存已在上面的逻辑中处理
         
-        setCurrentOperation("数据处理完成");
+        setCurrentOperation("Data processing completed");
         setLoading(false); // 设置加载完成状态
         
         // 清除超时定时器并标记完成
@@ -861,58 +861,58 @@ workflow_results: fullWorkflowResults
 
     // 构建简洁的表单式数据
     const detailData = {
-      '📊 图表信息': {
-        '标题': chart.title,
-        '类型': chart.type.toUpperCase(),
-        '索引': `第 ${index + 1} 个图表`
+      '📊 Chart Information': {
+        'Title': chart.title,
+        'Type': chart.type.toUpperCase(),
+        'Index': `Chart ${index + 1}`
       },
-      '🔄 工作流信息': (() => {
+      '🔄 Workflow Information': (() => {
         const workflowInfo: Record<string, string> = {};
         
         // 只添加有实际数据的字段
         if (workflowName) {
-          workflowInfo['工作流ID'] = workflowName;
+          workflowInfo['Workflow ID'] = workflowName;
         }
         
         if (fullWorkflowData?.execution_metadata?.start_time) {
-          workflowInfo['开始时间'] = fullWorkflowData.execution_metadata.start_time;
+          workflowInfo['Start Time'] = fullWorkflowData.execution_metadata.start_time;
         }
         
         if (fullWorkflowData?.execution_metadata?.end_time) {
-          workflowInfo['结束时间'] = fullWorkflowData.execution_metadata.end_time;
+          workflowInfo['End Time'] = fullWorkflowData.execution_metadata.end_time;
         }
         
         if (fullWorkflowData?.execution_metadata?.duration_ms) {
-          workflowInfo['执行耗时'] = `${fullWorkflowData.execution_metadata.duration_ms}ms`;
+          workflowInfo['Execution Duration'] = `${fullWorkflowData.execution_metadata.duration_ms}ms`;
         }
         
         if (fullWorkflowData?.execution_metadata?.status) {
-          workflowInfo['执行状态'] = fullWorkflowData.execution_metadata.status;
+          workflowInfo['Execution Status'] = fullWorkflowData.execution_metadata.status;
         } else if (fullWorkflowData) {
-          workflowInfo['执行状态'] = '成功';
+          workflowInfo['Execution Status'] = 'Success';
         }
         
         // 数据来源总是显示
-        workflowInfo['数据来源'] = isHistoryView ? '历史记录' : '实时执行';
+        workflowInfo['Data Source'] = isHistoryView ? 'Historical Record' : 'Real-time Execution';
         
         // 数据类型总是显示
         if (fullWorkflowData?.echarts_data) {
-          workflowInfo['数据类型'] = Array.isArray(fullWorkflowData.echarts_data) 
-            ? `${fullWorkflowData.echarts_data.length}个图表` 
-            : '1个图表';
+          workflowInfo['Data Type'] = Array.isArray(fullWorkflowData.echarts_data) 
+            ? `${fullWorkflowData.echarts_data.length} charts` 
+            : '1 chart';
         } else {
-          workflowInfo['数据类型'] = '无图表数据';
+          workflowInfo['Data Type'] = 'No chart data';
         }
         
         return workflowInfo;
       })(),
-      '🗄️ 工作流完整返回': {
-        data: fullWorkflowData || { error: '无完整数据' },
+      '🗄️ Complete Workflow Response': {
+        data: fullWorkflowData || { error: 'No complete data' },
         type: 'json-markdown'
       }
     };
     
-    openDrawer(`${chart.title} - 完整数据`, detailData);
+    openDrawer(`${chart.title} - Complete Data`, detailData);
   };
 
   // 统一的状态显示逻辑 - 所有状态都在同一个布局中显示
@@ -949,10 +949,10 @@ workflow_results: fullWorkflowResults
               fontWeight: '600'
             }}>
               {error 
-                ? `执行失败: ${error}` 
+                ? `Execution Failed: ${error}` 
                 : loading 
                   ? currentOperation 
-                  : `工作流: ${Object.keys(workflowResults)[0] || 'unknown'}`
+                  : `Workflow: ${Object.keys(workflowResults)[0] || 'unknown'}`
             }
             </div>
             <div style={{
@@ -971,7 +971,7 @@ workflow_results: fullWorkflowResults
                 fontSize: '12px',
                 fontWeight: '500'
               }}>
-                {error ? '执行失败' : loading ? '执行中' : '执行完成'}
+                {error ? 'Execution Failed' : loading ? 'Executing' : 'Execution Completed'}
               </span>
             </div>
           </div>
@@ -1079,7 +1079,7 @@ workflow_results: fullWorkflowResults
                 fontWeight: '600',
                 marginBottom: '4px'
               }}>
-                数据{index + 1}
+                Data {index + 1}
               </div>
               <div style={{
                 color: '#c4b5fd',

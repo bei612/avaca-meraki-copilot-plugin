@@ -48,7 +48,7 @@ export default async function handler(
     const clientIP = req.headers['x-forwarded-for'] as string || req.connection.remoteAddress || 'unknown';
     if (!RateLimiter.check(clientIP)) {
       return res.status(429).json({
-        error: '请求过于频繁，请稍后再试',
+        error: 'Too many requests, please try again later',
         success: false,
         timestamp: Date.now()
       });
@@ -57,7 +57,7 @@ export default async function handler(
     // 只允许 POST 请求
     if (req.method !== 'POST') {
       return res.status(405).json({
-        error: '不支持的请求方法',
+        error: 'Unsupported request method',
         success: false,
         timestamp: Date.now()
       });
@@ -110,7 +110,7 @@ export default async function handler(
     console.error('[temporal-api] 设备状态工作流执行失败:', error);
 
     return res.status(500).json({
-      error: error instanceof Error ? error.message : '服务器内部错误',
+      error: error instanceof Error ? error.message : 'Internal server error',
       success: false,
       timestamp: Date.now()
     });

@@ -177,7 +177,7 @@ export default async function handler(
     const clientIP = req.headers['x-forwarded-for'] as string || req.connection.remoteAddress || 'unknown';
     if (!RateLimiter.check(clientIP)) {
       return res.status(429).json({
-        error: '请求过于频繁，请稍后再试',
+        error: 'Too many requests, please try again later',
         success: false,
         timestamp: Date.now()
       });
@@ -186,7 +186,7 @@ export default async function handler(
     // 只允许 POST 请求
     if (req.method !== 'POST') {
       return res.status(405).json({
-        error: '不支持的请求方法',
+        error: 'Unsupported request method',
         success: false,
         timestamp: Date.now()
       });
@@ -205,7 +205,7 @@ export default async function handler(
     // 验证输入数据
     if (!Array.isArray(echarts_data_list) || echarts_data_list.length === 0) {
       return res.status(400).json({
-        error: '请提供有效的 echarts_data_list 数组',
+        error: 'Please provide a valid echarts_data_list array',
         success: false,
         timestamp: Date.now()
       });
@@ -213,7 +213,7 @@ export default async function handler(
 
     if (echarts_data_list.length > 12) {
       return res.status(400).json({
-        error: '图表数量不能超过12个',
+        error: 'Number of charts cannot exceed 12',
         success: false,
         timestamp: Date.now()
       });
@@ -241,7 +241,7 @@ export default async function handler(
       metadata: {
         chart_types: [...new Set(normalizedCharts.map(chart => chart.type))],
         timestamp: Date.now(),
-        title: layout_config.title || `数据可视化面板 (${normalizedCharts.length}个图表)`
+        title: layout_config.title || `Data Visualization Dashboard (${normalizedCharts.length} charts)`
       }
     };
 
@@ -265,7 +265,7 @@ export default async function handler(
     console.error('[charts-display-api] 图表展示API处理失败:', error);
 
     return res.status(500).json({
-      error: error instanceof Error ? error.message : '服务器内部错误',
+      error: error instanceof Error ? error.message : 'Internal server error',
       success: false,
       timestamp: Date.now()
     });
