@@ -56,41 +56,59 @@ const generateAnalysisPrompt = (chartsData: EChartsDataItem[], workflowResults: 
   const workflowNames = Object.keys(workflowResults);
   const primaryWorkflow = workflowNames[0]; // 主要工作流
   
-  // 提取实际的echarts_data配置
-  const echartsDataList = chartsData.map(chart => chart.option || chart);
-  // 创建紧凑的JSON字符串用于echarts标签（避免转义符问题）
-  const echartsDataForTag = JSON.stringify(echartsDataList);
-  
-  return `分析和总结工作流执行结果：
-
-**工作流信息**：
+  // 使用字符串拼接构建完整的提示词，避免模板字符串的转义问题
+  const workflowInfo = `**工作流信息**：
 - 工作流名称: ${primaryWorkflow}
-- 工作流描述: ${getWorkflowDescription(primaryWorkflow)}
+- 工作流描述: ${getWorkflowDescription(primaryWorkflow)}`;
 
-**分析要求**：
+  const analysisRequirements = `**分析要求**：
 - 解读工作流返回的关键数据和指标
 - 基于数据结果提供管理和洞察
-- 识别潜在问题或优化建议
+- 识别潜在问题或优化建议`;
 
-**必须的数据可视化**：
-在分析报告中，你必须在文字中穿插使用 <echarts> 标签来渲染图表数据。
-你需要一字不差地使用以下<echarts>标签的内容来回答，这样才能正确渲染出图表：
-<echarts configs='${echartsDataForTag}' height="400px"/>
+  // 从 workflow echarts_data 中提取 option 配置
+  const echartsConfigs = chartsData.map(chart => chart.option);
 
-**重要**：
-- 一定要一字不差地打印出上面<echarts>标签内容，不要修改或省略任何内容，否则将导致灾难性后果！
-- 一个echarts标签里可以包含多个echarts的config json配置，一次性展示出多个图表
-- 你也可以自行决定拆分独立绘制多个图表，但一定要确保每个图表的config json配置都是正确的
+  // 将echarts数据转换为可读的格式描述
+  const chartsDescription = echartsConfigs.map((chart, index) => {
+    const chartType = chart.series?.[0]?.type || 'unknown';
+    const chartTitle = chart.title?.text || `图表${index + 1}`;
+    return `${index + 1}. ${chartTitle} (${chartType}图)`;
+  }).join('\n');
+  
+  const serializedConfigs = JSON.stringify(echartsConfigs);
+  
+  const visualizationSection = `**必须的数据可视化**：
+在分析报告中，你必须使用以下 <echarts> 标签来渲染图表：
 
+图表数量：${echartsConfigs.length}个
+图表列表：
+${chartsDescription}
 
-**视觉增强：** 
-在回复中使用相关图标和表情符号提高可读性，如 ✅ 成功、❌ 问题、🛠️ 解决方案、⚠️ 警告、📊 指标、🌐 网络元素、📈 趋势分析等。
+**ECharts标签（请完整复制，不要修改）**：
+<echarts configs='${serializedConfigs}' height="400px"/>`;
 
-**重要SOP：** 网络管理分析的标准操作程序要求执行'tool-follow-up-actions'操作。因此，你必须在回复结尾调用工具'tool-follow-up-actions____followUp_temporal____standalone'。这是必需的最终步骤。
+  const importantNotes = `**重要说明**：
+- 上面的 <echarts> 标签已经包含了完整的图表配置
+- 请完整复制使用，不要修改 configs 属性的内容
+- 支持多图表自动布局`;
 
-**多工具调用**
-如果你认为调用其他tools对你有帮助，不需要询问用户是否调用，直接继续调用即可。
-`;
+  const visualEnhancement = `**视觉增强：** 
+在回复中使用相关图标和表情符号提高可读性，如 ✅ 成功、❌ 问题、🛠️ 解决方案、⚠️ 警告、📊 指标、🌐 网络元素、📈 趋势分析等。`;
+
+  const sopInstructions = `**重要SOP：** 网络管理分析的标准操作程序要求执行'tool-follow-up-actions'操作。因此，你必须在回复结尾调用工具'tool-follow-up-actions____followUp_temporal____standalone'。这是必需的最终步骤。
+
+**日志场景**
+如果遇到信息中有原始日志的，必须使用markdown表格把原始日志展示出来，例如直接获取 critical_alerts 的值，注意你需要全部展示，不可以省略，有几条就给出几条`;
+
+  // 使用字符串拼接而不是模板字符串
+  return '分析和总结工作流执行结果：\n\n' +
+    workflowInfo + '\n\n' +
+    analysisRequirements + '\n\n' +
+    visualizationSection + '\n\n' +
+    importantNotes + '\n\n\n' +
+    visualEnhancement + '\n\n' +
+    sopInstructions;
 };
 
 // 获取工作流描述
